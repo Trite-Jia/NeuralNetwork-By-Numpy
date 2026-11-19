@@ -41,7 +41,9 @@ class Layer:
 		self.weights = np.random.randn(n_inputs, n_neurons)
 		self.biases = np.random.randn(n_neurons)
 	def forward(self, inputs):
-		# self.biases 的矩阵格式可能并不匹配
+		# self.biases 的矩阵格式可能并不匹配，但 numpy 还是保证可以进行计算
+		# 计算这个神经元的时候，便让 ReLU 有了两个参数，ReLU(wx + b)，可以更改激活函数
+		# 的斜率与位置
 		return np.dot(inputs, self.weights) + self.biases
 
 
