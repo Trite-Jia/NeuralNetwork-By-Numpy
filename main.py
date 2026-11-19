@@ -1,4 +1,5 @@
 import numpy as np
+import createDataAndPlot as cp
 
 # 权重矩阵，行数为输入数据的特征数，列数为要输出的神经元的个数
 def create_weights(n_inputs, n_neurons):
@@ -70,8 +71,17 @@ class Network:
 		return inputs
 
 
-network = Network([2, 3, 4, 2])
-inputs = np.random.randn(5, 2)
-print(inputs)
-print()
-network.forward(inputs)
+def classify(inputs):
+	# 对第二列四舍五入，较小的话则为0，较大的话则为1，
+	# 此时模型预测其在圆内
+	return np.rint(inputs[:,1])
+
+if __name__ == "__main__":
+	# 得到标记之后的数据
+	data = cp.create_data(200)
+	cp.plot_data(data, " ")
+	inputs = data[:, (0, 1)]	# 取前两列的坐标
+	network = Network([2, 3, 4, 2])
+	outputs = network.forward(inputs)
+	data[:, 2] = classify(outputs)
+	cp.plot_data(data, " ")
