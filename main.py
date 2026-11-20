@@ -36,6 +36,17 @@ def normalize(x):
 	# numpy 重写了向量的 != 表达式，对数组中每个元素分别与 0 比较，返回同形状的布尔数组
 	return x / np.where(max_value != 0, max_value, 1)
 
+# 损失函数
+def precise_loss(predict, real):
+	# 参数 real 是一维的，但是预测值是二维的，我们需要扩展真实值的维度，使两者
+	# 之间可以计算距离，也就是Loss
+	real_matrix = np.zeros((len(real), 2))
+	real_matrix[:, 1] = real
+	real_matrix[:, 0] = 1 - real
+	print(real_matrix)
+	# 两个向量相乘，离得越远，值越小，因此使用 1- 使得离得越远，值越大
+	return 1 - np.sum(predict * real_matrix, axis=1)
+
 # 神经网络的一层
 class Layer:
 	def __init__(self, n_inputs, n_neurons):
@@ -70,18 +81,25 @@ class Network:
 				inputs = softmax(inputs)
 		return inputs
 
-
+# 规定，第一列值为0，代表不在圆内
+# 第二列值为1，代表在圆内
 def classify(inputs):
-	# 对第二列四舍五入，较小的话则为0，较大的话则为1，
 	# 此时模型预测其在圆内
 	return np.rint(inputs[:,1])
 
 if __name__ == "__main__":
 	# 得到标记之后的数据
-	data = cp.create_data(200)
-	cp.plot_data(data, " ")
-	inputs = data[:, (0, 1)]	# 取前两列的坐标
+	real_Data = cp.create_data(10)
+	targets = real_Data[:, 2]
+	print(targets)
+	cp.plot_data(real_Data, " ")
+	inputs = real_Data[:, (0, 1)]	# 取前两列的坐标
 	network = Network([2, 3, 4, 2])
 	outputs = network.forward(inputs)
-	data[:, 2] = classify(outputs)
-	cp.plot_data(data, " ")
+	print(outputs)
+	predict_Data = np.zeros((len(real_Data), 3))
+	predict_Data[:, (0, 1)] = real_Data[:, (0, 1)]
+	predict_Data[:, 2] = classify(outputs)
+	cp.plot_data(predict_Data, " ")
+	precise_loss = precise_loss(outputs, targets)
+	print(precise_loss)
