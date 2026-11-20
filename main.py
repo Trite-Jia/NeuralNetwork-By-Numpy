@@ -43,9 +43,22 @@ def precise_loss(predict, real):
 	real_matrix = np.zeros((len(real), 2))
 	real_matrix[:, 1] = real
 	real_matrix[:, 0] = 1 - real
-	print(real_matrix)
 	# 两个向量相乘，离得越远，值越小，因此使用 1- 使得离得越远，值越大
 	return 1 - np.sum(predict * real_matrix, axis=1)
+
+# 指出预测值应该怎么变化，-1代表预测值应该降低，1表示该增加，0表示不变化
+def get_final_layer_preAct_demand(predict, real):
+	real_matrix = np.zeros((len(real), 2))
+	real_matrix[:, 1] = real
+	real_matrix[:, 0] = 1 - real
+
+	for i in range(len(real)):
+		if ( np.dot(real_matrix[i], predict[i]) > 0.5 ):
+			# 如果预测对了，则不需要改变
+			real_matrix[i] = np.array([0, 0])
+		else:
+			real_matrix[i] = (real_matrix[i] - 0.5) * 2
+	return real_matrix
 
 # 神经网络的一层
 class Layer:
@@ -92,7 +105,7 @@ if __name__ == "__main__":
 	real_Data = cp.create_data(10)
 	targets = real_Data[:, 2]
 	print(targets)
-	cp.plot_data(real_Data, " ")
+	# cp.plot_data(real_Data, " ")
 	inputs = real_Data[:, (0, 1)]	# 取前两列的坐标
 	network = Network([2, 3, 4, 2])
 	outputs = network.forward(inputs)
@@ -100,6 +113,8 @@ if __name__ == "__main__":
 	predict_Data = np.zeros((len(real_Data), 3))
 	predict_Data[:, (0, 1)] = real_Data[:, (0, 1)]
 	predict_Data[:, 2] = classify(outputs)
-	cp.plot_data(predict_Data, " ")
+	# cp.plot_data(predict_Data, " ")
 	precise_loss = precise_loss(outputs, targets)
 	print(precise_loss)
+
+	print(get_final_layer_preAct_demand(outputs, targets))
